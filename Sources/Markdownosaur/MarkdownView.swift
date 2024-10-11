@@ -20,7 +20,8 @@ public struct MarkdownView: NSViewRepresentable {
   
     @Binding var textViewHeight: CGFloat
     var content: String
-  
+    @Environment(\.isSelectable) private var isSelectable: Bool
+
     public func makeNSView(context: Context) -> NSTextView {
         let textView = NSTextView()
         textView.wantsLayer = true
@@ -33,7 +34,7 @@ public struct MarkdownView: NSViewRepresentable {
         textView.isHorizontallyResizable = false
         textView.layer?.backgroundColor = .clear
         textView.backgroundColor = .clear
-        textView.isSelectable = false /// 控制textView 是否可点击
+        textView.isSelectable = isSelectable /// 控制textView 是否可点击
         return textView
     }
   
@@ -44,7 +45,7 @@ public struct MarkdownView: NSViewRepresentable {
         
         nsView.textStorage?.setAttributedString(attributedString)
         nsView.layoutManager?.ensureLayout(for: nsView.textContainer!)
-        
+        nsView.isSelectable = isSelectable
         DispatchQueue.main.async {
             if let height = nsView.layoutManager?.usedRect(for: nsView.textContainer!).height {
                 self.textViewHeight = height
@@ -55,7 +56,6 @@ public struct MarkdownView: NSViewRepresentable {
   
   
   /// sizeThatFits 会多次调用
-  @available(macOS 13.0, *)
   public func sizeThatFits(_ proposal: ProposedViewSize, nsView: NSTextView, context: Context) -> CGSize? {
         nsView.layoutManager?.ensureLayout(for: nsView.textContainer!)
         let height = nsView.layoutManager?.usedRect(for: nsView.textContainer!).height ?? 0
@@ -63,6 +63,37 @@ public struct MarkdownView: NSViewRepresentable {
     }
 }
 
+
+struct SelectableModifier: ViewModifier {
+    let isSelectable: Bool
+    
+    func body(content: Content) -> some View {
+        content
+            .environment(\.isSelectable, isSelectable)
+    }
+}
+
+
+private struct SelectableKey: EnvironmentKey {
+    static let defaultValue: Bool = false
+}
+
+// 扩展 EnvironmentValues 以包含我们的新键
+extension EnvironmentValues {
+    var isSelectable: Bool {
+        get { self[SelectableKey.self] }
+        set { self[SelectableKey.self] = newValue }
+    }
+}
+
+
+
+// 最后，我们为 View 添加一个扩展来使用这个修饰符
+extension View {
+    public func selectable(_ isSelectable: Bool) -> some View {
+        self.modifier(SelectableModifier(isSelectable: isSelectable))
+    }
+}
 
 
 #endif

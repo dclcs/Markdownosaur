@@ -69,6 +69,8 @@ struct ContentView: View {
 //      LinearGradient(colors: [.red, .green], startPoint: .leading, endPoint: .trailing)
 //    }
     .background(.red)
+    .selectable(true)
+
     
     Text("3123")
   }

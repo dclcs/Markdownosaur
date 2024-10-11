@@ -78,7 +78,6 @@ private struct SelectableKey: EnvironmentKey {
     static let defaultValue: Bool = false
 }
 
-// 扩展 EnvironmentValues 以包含我们的新键
 extension EnvironmentValues {
     var isSelectable: Bool {
         get { self[SelectableKey.self] }
@@ -86,9 +85,6 @@ extension EnvironmentValues {
     }
 }
 
-
-
-// 最后，我们为 View 添加一个扩展来使用这个修饰符
 extension View {
     public func selectable(_ isSelectable: Bool) -> some View {
         self.modifier(SelectableModifier(isSelectable: isSelectable))

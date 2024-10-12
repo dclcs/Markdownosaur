@@ -25,6 +25,7 @@ public struct MarkdownView: NSViewRepresentable {
   var content: String
   @Environment(\.isSelectable) private var isSelectable: Bool
   @Environment(\.containerConstraint) private var containerConstraint: ContainerConstraint
+  @Environment(\.markdownTheme) private var theme: Theme
   
   public init(markdown: String,
               height: Binding<CGFloat> = .constant(0)) {
@@ -59,7 +60,7 @@ public struct MarkdownView: NSViewRepresentable {
   
     public func updateNSView(_ nsView: NSTextView, context: Context) {
         let document = Document(parsing: content)
-        var renderer = Markdownosaur(theme: .linkSummaryTheme)
+        var renderer = Markdownosaur(theme: theme)
         let attributedString = renderer.attributedString(from: document)
         
         nsView.textStorage?.setAttributedString(attributedString)

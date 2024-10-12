@@ -7,6 +7,21 @@
 
 import SwiftUI
 
+
+struct MarkdownThemeModifier: ViewModifier {
+  let theme: Theme
+  
+  func body(content: Content) -> some View {
+    content
+      .environment(\.markdownTheme, theme)
+  }
+}
+
+private struct MarkdownThemeKey: EnvironmentKey {
+  static let defaultValue: Theme = .baseTheme
+}
+
+
 struct SelectableModifier: ViewModifier {
     let isSelectable: Bool
     
@@ -54,6 +69,11 @@ extension EnvironmentValues {
     get { self[ContainerConstraintKey.self] }
     set { self[ContainerConstraintKey.self] = newValue }
   }
+  
+  var markdownTheme: Theme {
+    get { self[MarkdownThemeKey.self] }
+    set { self[MarkdownThemeKey.self] = newValue }
+  }
 }
 
 extension View {
@@ -65,4 +85,9 @@ extension View {
   public func containerConstraint(_ width: CGFloat, horiPadding: CGFloat = 0, verticalPadding: CGFloat = 0) -> some View {
     self.modifier(ContainerConstraintModifier(constraint: .init(width: width, horiPadding: horiPadding, vertPadding: verticalPadding)))
   }
+  
+  public func markdownTheme(_ theme: Theme) {
+    self.modifier(MarkdownThemeModifier(theme: theme))
+  }
+  
 }

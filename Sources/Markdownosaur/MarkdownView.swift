@@ -12,15 +12,25 @@ import Markdown
 import AppKit
 
 
+extension MarkdownView {
+  public static func string(from content: String) -> String {
+    var parser = Markdownosaur()
+    return parser.attributedString(from: Document(parsing: content)).string
+  }
+}
+
 public struct MarkdownView: NSViewRepresentable {
-    public init(markdown: String, height: Binding<CGFloat> = .constant(0)) {
+  
+  @Binding var textViewHeight: CGFloat
+  var content: String
+  @Environment(\.isSelectable) private var isSelectable: Bool
+  @Environment(\.containerConstraint) private var containerConstraint: ContainerConstraint
+  
+  public init(markdown: String,
+              height: Binding<CGFloat> = .constant(0)) {
         self.content = markdown
         self._textViewHeight = height
     }
-  
-    @Binding var textViewHeight: CGFloat
-    var content: String
-    @Environment(\.isSelectable) private var isSelectable: Bool
 
     public func makeNSView(context: Context) -> NSTextView {
         let textView = NSTextView()
@@ -28,13 +38,22 @@ public struct MarkdownView: NSViewRepresentable {
         textView.isEditable = false
         
         textView.translatesAutoresizingMaskIntoConstraints = false
-        textView.textContainer?.size = NSSize(width: 260, height: CGFloat.greatestFiniteMagnitude)
+        if containerConstraint.width != 0 {
+          textView.textContainer?.size = NSSize(width: containerConstraint.width, height: CGFloat.greatestFiniteMagnitude)
+        } else {
+          textView.textContainer?.size = NSSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
+
+        }
+      
+        textView.textContainerInset = NSSize(width: containerConstraint.horiPadding, height: 0)
+      
         textView.textContainer?.widthTracksTextView = true
         textView.isVerticallyResizable = true
         textView.isHorizontallyResizable = false
         textView.layer?.backgroundColor = .clear
         textView.backgroundColor = .clear
         textView.isSelectable = isSelectable /// 控制textView 是否可点击
+        
         return textView
     }
   
@@ -59,35 +78,8 @@ public struct MarkdownView: NSViewRepresentable {
   public func sizeThatFits(_ proposal: ProposedViewSize, nsView: NSTextView, context: Context) -> CGSize? {
         nsView.layoutManager?.ensureLayout(for: nsView.textContainer!)
         let height = nsView.layoutManager?.usedRect(for: nsView.textContainer!).height ?? 0
-        return CGSize(width: 260, height: height)
-    }
-}
-
-
-struct SelectableModifier: ViewModifier {
-    let isSelectable: Bool
-    
-    func body(content: Content) -> some View {
-        content
-            .environment(\.isSelectable, isSelectable)
-    }
-}
-
-
-private struct SelectableKey: EnvironmentKey {
-    static let defaultValue: Bool = false
-}
-
-extension EnvironmentValues {
-    var isSelectable: Bool {
-        get { self[SelectableKey.self] }
-        set { self[SelectableKey.self] = newValue }
-    }
-}
-
-extension View {
-    public func selectable(_ isSelectable: Bool) -> some View {
-        self.modifier(SelectableModifier(isSelectable: isSelectable))
+        debugPrint("size: \(CGSize(width: containerConstraint.width, height: height))")
+        return CGSize(width: containerConstraint.width, height: height)
     }
 }
 
